@@ -1,0 +1,53 @@
+// идентификатор документа из ссылки на гугл таблицу https://docs.google.com/spreadsheets/d/{ID}/edit?gid=1893249755#gid=1893249755
+var ID = "{ID}"
+// перечисление {email} для отправки (вводится через запятую)
+var EMAIL = "{email}"
+// Стандартный диапазон данных для отправки
+var RANGE = "A68:B73"
+// расширенный диапазон данных для отправки
+var RANGE1 = "A68:C73"
+// получение номера дня недели (принимает значения от 1 до 7 включительно)
+var WEEK_DAY = Utilities.formatDate(new Date(), "GMT", "u")
+// текстовая переменная используямая для задания темы email
+var text = "Daily plan for material preparation"
+// функция отправки на email
+function gbdatasend(){
+// Получаем данные из последнего листа в таблице
+  var list = SpreadsheetApp.openById(ID).getSheets().pop()
+// переменная в которую записываем данные письма (адрес получателя, тема письма, текст письма) 
+  var message = {}
+// условие по которому email отправляется только в рабочие дни
+  if (0 <= WEEK_DAY && WEEK_DAY <= 5) { //work days
+// условие №2 по которому в понедельник отправляется расширенный набор данных 
+    if (1 == WEEK_DAY) {
+// Получаем отображаемые значения из выбранного диапазона ячеек
+      var data = list.getRange(RANGE1).getDisplayValues()
+// Текст который вставляется в теле письма перед табличкой
+      var text1 = "Please prepare the materials for today's assembly and this week noted in the table below. Thank you!"
+    }
+    else {
+      var data = list.getRange(RANGE).getDisplayValues()
+      var text1 = "Please prepare the materials for today's assembly noted in the table below. Thank you!"
+    }
+// Генерирация HTML таблицы по данным из выбранного диапазона
+    var table = "<html><body><br><table border=1>";
+    //table Body
+    for (var i = 0; i < data.length; i++){
+      cells = data[i]; //puts each cell in an array position
+      table = table + "<tr>";
+      for (var j =0; j< cells.length; j++){
+        var FinalValue=cells[j];
+        table = table +"<tb>"+FinalValue+ "</td>";
+      }
+      table = table + "<tr>"
+    }
+// адрес отправки
+    message.to = EMAIL
+// тема письма
+    message.subject  = text
+// текст письма
+    message.htmlBody = text1+"<br>"+ table
+// Отправка сформированного письма
+    MailApp.sendEmail(message)
+  }
+}
